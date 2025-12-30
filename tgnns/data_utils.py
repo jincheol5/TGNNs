@@ -5,92 +5,112 @@ import networkx as nx
 import torch
 from tqdm import tqdm
 from typing_extensions import Literal
-from .graph_utils import GraphUtils
+import requests
+import gzip
+import io
 
 class DataUtils:
     dataset_path=os.path.join('..','data','tgnns')
     @staticmethod
-    def save_to_pickle(data,file_name:str,dir_type:Literal['graph','dataset'],num_nodes:Literal[20,50,100,500,1000]=20):
+    def save_to_pickle(data,file_name:str,dir_type:Literal['graph','dataset'],dataset_name:Literal['CollegeMsg','bitcoin_otc','bitcoin_alpha'],mode:Literal['train','val','test']='train'):
         file_name=file_name+".pkl"
         file_path=os.path.join(DataUtils.dataset_path,dir_type,file_name)
-        if dir_type=='test':
-            file_path=os.path.join(DataUtils.dataset_path,dir_type,f"{num_nodes}",file_name)
+        if dir_type=='dataset':
+            file_path=os.path.join(DataUtils.dataset_path,dir_type,dataset_name,mode,file_name)
         with open(file_path,'wb') as f:
             pickle.dump(data,f)
         print(f"Save {file_name}")
     
     @staticmethod
-    def load_from_pickle(file_name:str,dir_type:Literal['graph','dataset'],num_nodes:Literal[20,50,100,500,1000]=20):
+    def load_from_pickle(file_name:str,dir_type:Literal['graph','dataset'],dataset_name:Literal['CollegeMsg','bitcoin_otc','bitcoin_alpha'],mode:Literal['train','val','test']='train'):
         file_name=file_name+".pkl"
         file_path=os.path.join(DataUtils.dataset_path,dir_type,file_name)
-        if dir_type=='test':
-            file_path=os.path.join(DataUtils.dataset_path,dir_type,f"{num_nodes}",file_name)
+        if dir_type=='dataset':
+            file_path=os.path.join(DataUtils.dataset_path,dir_type,dataset_name,mode,file_name)
         with open(file_path,'rb') as f:
             data=pickle.load(f)
         print(f"Load {file_name}")
         return data
 
     @staticmethod
-    def save_graph_to_dataset(graph:nx.DiGraph,src_list:list):
+    def load_SNAP_to_graph(dataset_name:Literal['CollegeMsg','bitcoin_otc','bitcoin_alpha']='CollegeMsg',return_mapping:bool=False):
         """
         Input:
-            graph: networkx DiGraph
-            src_list: source node list
+            dataset_name: SNAP dataset name
+            return_mappping
         Output:
-            src_list
-            datastream
-            trajectory_list
+            graph: nx.DiGraph
         """
-        num_nodes=graph.number_of_nodes()
-        eventstream=GraphUtils.get_eventstream(graph=graph)
-        datastream=GraphUtils.compute_datastream_from_eventstream(eventstream=eventstream,num_nodes=num_nodes) # dict
-        
-        trajectory_list=[]
-        for source_id in src_list:
-            trajectory=GraphUtils.compute_TR_trajectory_from_eventstream(eventstream=eventstream,num_nodes=num_nodes,source_id=source_id) # [E,N,1]
-            trajectory_list.append(trajectory)
-        
-        return src_list,datastream,trajectory_list
+        match dataset_name:
+            case 'CollegeMsg':
+                snap_url=f"https://snap.stanford.edu/data/CollegeMsg.txt.gz"
+            case 'bitcoin_otc':
+                snap_url=f"https://snap.stanford.edu/data/soc-sign-bitcoinotc.csv.gz"
+            case 'bitcoin_alpha':
+                snap_url=f"https://snap.stanford.edu/data/soc-sign-bitcoinalpha.csv.gz"
 
-    @staticmethod
-    def split_dataset(src_list:list,datastream:dict,trajectory_list:list,train_ratio:float=0.7,val_ratio:float=0.15):
-        """
-        Input:
-        Output:
-            splitted_dataset_dict:
-                train: ()
-                val: ()
-                test: ()
-                sizes: ()
-        """
-        E=datastream['src'].shape[0]
-        train_size=int(E*train_ratio)
-        val_size=int(E*val_ratio)
-        test_size=E-train_size-val_size
+        try:
+            resp=requests.get(snap_url,timeout=30)
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Download failed: {e}")
+            graph=nx.DiGraph()
+            if return_mapping:
+                return graph,{}
+            return graph
+        bio=io.BytesIO(resp.content)
 
-        def _slice_ds(ds,start,end):
-            return {
-                'src': ds['src'][start:end],
-                'tar': ds['tar'][start:end],
-                'mem_t': ds['mem_t'][start:end],
-                'emb_t': ds['emb_t'][start:end],
-                'n_mask': ds['n_mask'][start:end]
-            }
+        nodes=set()
+        edges=[]
+        with gzip.open(bio,mode='rt',encoding='utf-8',errors='ignore') as gf:
+            for raw in gf:
+                if raw is None:continue
+                line=raw.strip()
+                if not line or line.startswith('#'):continue
+                # dataset-specific parsing
+                match dataset_name:
+                    case 'bitcoin_otc'|'bitcoin_alpha':
+                        low=line.lower()
+                        if low.startswith('source') or low.startswith('source,'):continue
+                        parts=[p.strip().strip('"') for p in line.split(',')]
+                        if len(parts)<4:continue
+                        try:
+                            u=int(parts[0]);v=int(parts[1]);t=float(parts[3])
+                        except ValueError:continue
+                    case 'CollegeMsg':
+                        parts=line.split()
+                        if len(parts)<3:continue
+                        try:
+                            u=int(parts[0]);v=int(parts[1]);t=float(parts[2])
+                        except ValueError:continue
+                edges.append((u,v,t))
+                nodes.add(u);nodes.add(v)
 
-        def _slice_trajectories(traj_list,start,end):
-            return [traj[start:end] for traj in traj_list]
+        if len(edges)==0:
+            print(f"zero edge events")
+            graph=nx.DiGraph()
+            if return_mapping:
+                return graph,{}
+            return graph
 
-        train_ds=_slice_ds(datastream,0,train_size)
-        val_ds=_slice_ds(datastream,train_size,train_size+val_size)
-        test_ds=_slice_ds(datastream,train_size+val_size,E)
+        mapping={orig:i for i,orig in enumerate(sorted(nodes))}
+        ts=[e[2] for e in edges]
+        min_t=min(ts);max_t=max(ts)
+        def _scale(t):
+            if max_t==min_t:return 0.6
+            return 0.2+(t-min_t)/(max_t-min_t)*(1.0-0.2)
 
-        train_traj=_slice_trajectories(trajectory_list,0,train_size)
-        val_traj=_slice_trajectories(trajectory_list,train_size,train_size+val_size)
-        test_traj=_slice_trajectories(trajectory_list,train_size+val_size,E)
+        graph=nx.DiGraph()
+        graph.add_nodes_from(range(len(mapping)))
+        for u,v,t in edges:
+            nu=mapping[u];nv=mapping[v]
+            if graph.has_edge(nu,nv):
+                existing_t=graph[nu][nv].get('t',[])
+                existing_t.append(_scale(t))
+                graph[nu][nv]['t']=existing_t
+            else:
+                graph.add_edge(nu,nv,**{'t':[_scale(t)]})
+        if return_mapping:
+            return graph,mapping
+        return graph
 
-        return {
-            'train': (src_list,train_ds,train_traj),
-            'val': (src_list,val_ds,val_traj),
-            'test': (src_list,test_ds,test_traj),
-            'sizes': {'train':train_size,'val':val_size,'test':test_size}
-        }
