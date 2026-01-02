@@ -28,8 +28,8 @@ def app_data(config: dict):
             Convert graph to dataset and save using pickle
                 src_list
                 datastream
-                trajectory_list
-                each trajectory of each src 
+                traj_list
+                traj of each src 
             """
             graph=DataUtils.load_from_pickle(file_name=f"{config['dataset_name']}",dir_type="graph")
             node_list=list(graph.nodes())
@@ -40,14 +40,12 @@ def app_data(config: dict):
             for mode in tqdm(['train','val','test'],desc=f"convert {config['dataset_name']} to dataset and save..."):
                 src_list=splitted_dataset[mode][0]
                 datastream=splitted_dataset[mode][1]
-                trajectory_list=splitted_dataset[mode][2]
+                traj_list=splitted_dataset[mode][2]
 
                 DataUtils.save_to_pickle(data=src_list,file_name=f"src_list",dir_type="dataset",dataset_name=config['dataset_name'],mode=mode)
                 DataUtils.save_to_pickle(data=datastream,file_name=f"datastream",dir_type="dataset",dataset_name=config['dataset_name'],mode=mode)
-                DataUtils.save_to_pickle(data=trajectory_list,file_name=f"trajectory_list",dir_type="dataset",dataset_name=config['dataset_name'],mode=mode)
-
-                for src,trajectory in tqdm(zip(src_list,trajectory_list),desc=f"Save {config['dataset_name']} {mode} trajectory of each source..."):
-                    DataUtils.save_to_pickle(data=trajectory,file_name=f"trajectory_{src}",dir_type="dataset",dataset_name=config['dataset_name'],mode=mode)
+                for src,traj in tqdm(zip(src_list,traj_list),desc=f"Save {config['dataset_name']} {mode} trajectory of each source..."):
+                    DataUtils.save_to_pickle(data=traj,file_name=f"traj_{src}",dir_type="dataset",dataset_name=config['dataset_name'],mode=mode)
 
 if __name__=="__main__":
     """

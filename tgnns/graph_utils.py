@@ -29,13 +29,12 @@ class GraphUtils:
             event_stream: sorted tuple list (src,tar,ts)
             num_nodes: number of nodes
         Output:
-            data_stream: sequence of data, dict 
-                data:
-                    mem_t: [N,1], delta_t for memory update -> |current_time-previous_activated_time (with any nodes)| of each node
-                    emb_t: [N,1], delta_t for embedding -> |current_time-previous_interaction_time (with target node)| of target node
-                    src: source id
-                    tar: target id
-                    n_mask: [N,], neighbor mask of target node
+            data_stream: dict 
+                mem_t: [E,N,1], delta_t for memory update -> |current_time-previous_activated_time (with any nodes)| of each node
+                emb_t: [E,N,1], delta_t for embedding -> |current_time-previous_interaction_time (with target node)| of target node
+                src: [E,1], source id
+                tar: [E,1], target id
+                n_mask: [E,N], neighbor mask of target node
         """
 
         # initial setup for delta_t in memory update, embedding
@@ -57,20 +56,19 @@ class GraphUtils:
             src_list.append(src)
             tar_list.append(tar)
 
-            activated_t=mem_time_table.unsqueeze(-1) # [N,1]
-            mem_t_list.append(torch.abs(activated_t-ts))
-
+            emb_time_table[tar,src]=ts
             interacted_t=emb_time_table[tar].unsqueeze(-1) # [N,1]
             emb_t_list.append(torch.abs(interacted_t-ts))
+
+            activated_t=mem_time_table.unsqueeze(-1) # [N,1]
+            mem_t_list.append(torch.abs(activated_t-ts))
+            mem_time_table[src]=ts
+            mem_time_table[tar]=ts
 
             neighbor_history[tar][src]=True
             neighbor_mask[idx]=neighbor_history[tar] # 참조가 아닌 복사(tensor index 대입)
             n_mask_list.append(neighbor_mask[idx])
 
-            emb_time_table[tar,src]=ts 
-            mem_time_table[src]=ts
-            mem_time_table[tar]=ts
-        
         # convert to datastream
         datastream={}
         datastream['src']=torch.tensor(src_list,dtype=torch.int64).unsqueeze(-1) # [E,1]
@@ -138,21 +136,21 @@ class GraphUtils:
             dataset: dict
                 src_list
                 datastream
-                trajectory_list
+                traj_list
         """
         num_nodes=graph.number_of_nodes()
         eventstream=GraphUtils.get_eventstream(graph=graph)
         datastream=GraphUtils.compute_datastream_from_eventstream(eventstream=eventstream,num_nodes=num_nodes) # dict
         
-        trajectory_list=[]
+        traj_list=[]
         for source_id in src_list:
-            trajectory=GraphUtils.compute_TR_trajectory_from_eventstream(eventstream=eventstream,num_nodes=num_nodes,source_id=source_id) # [E,N,1]
-            trajectory_list.append(trajectory)
+            traj=GraphUtils.compute_TR_trajectory_from_eventstream(eventstream=eventstream,num_nodes=num_nodes,source_id=source_id) # [E,N,1]
+            traj_list.append(traj)
         
         return {
             'src_list':src_list,
             'datastream':datastream,
-            'trajectory_list':trajectory_list
+            'traj_list':traj_list # list of [E,N,1]
         }
 
     @staticmethod
@@ -162,7 +160,7 @@ class GraphUtils:
             dataset: dict
                 src_list: list
                 datastream: dict
-                trajectory_list: list
+                traj_list: list
         Output:
             splitted_dataset: dict
                 train: ()
@@ -172,7 +170,7 @@ class GraphUtils:
         """
         src_list=dataset['src_list']
         datastream=dataset['datastream']
-        trajectory_list=dataset['trajectory_list']
+        traj_list=dataset['traj_list'] # list of [E,N,1]
 
         E=datastream['src'].shape[0]
         train_size=int(E*train_ratio)
@@ -195,13 +193,13 @@ class GraphUtils:
         val_ds=_slice_ds(datastream,train_size,train_size+val_size)
         test_ds=_slice_ds(datastream,train_size+val_size,E)
 
-        train_traj=_slice_trajectories(trajectory_list,0,train_size)
-        val_traj=_slice_trajectories(trajectory_list,train_size,train_size+val_size)
-        test_traj=_slice_trajectories(trajectory_list,train_size+val_size,E)
+        train_traj_list=_slice_trajectories(traj_list,0,train_size)
+        val_traj_list=_slice_trajectories(traj_list,train_size,train_size+val_size)
+        test_traj_list=_slice_trajectories(traj_list,train_size+val_size,E)
 
         return {
-            'train': (src_list,train_ds,train_traj),
-            'val': (src_list,val_ds,val_traj),
-            'test': (src_list,test_ds,test_traj),
+            'train': (src_list,train_ds,train_traj_list),
+            'val': (src_list,val_ds,val_traj_list),
+            'test': (src_list,test_ds,test_traj_list),
             'sizes': {'train':train_size,'val':val_size,'test':test_size}
         }
