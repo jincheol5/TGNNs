@@ -33,13 +33,19 @@ class ModelTrainUtils:
         init_traj[source_id,0]=1.0
         
         data_loader=[]
+        prev_mem_block=None  # store mem_t from previous batch to delay mem by one batch
         for start in range(0,E,batch_size):
             end=min(start+batch_size,E)
             batch={}
             batch['init_traj']=init_traj # [N,1]
             batch['traj']=traj[start:end] # [B,N,1]
             batch['emb_t']=datastream['emb_t'][start:end] # [B,N,1]
-            batch['mem_t']=datastream['mem_t'][start:end] # [B,N,1]
+            current_mem=datastream['mem_t'][start:end] # [B,N,1]
+            if prev_mem_block is None:
+                batch['mem_t']=torch.zeros_like(current_mem) # [B,N,1] (first batch all zeros)
+            else:
+                batch['mem_t']=prev_mem_block # [B,N,1] delayed by one batch
+            prev_mem_block=current_mem.clone()
             batch['src']=datastream['src'][start:end] # [B,1]
             batch['tar']=datastream['tar'][start:end] # [B,1] 
             batch['n_mask']=datastream['n_mask'][start:end] # [B,N]
