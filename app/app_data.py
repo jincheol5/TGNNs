@@ -18,9 +18,9 @@ def app_data(config: dict):
             bitcoin_otc=DataUtils.load_SNAP_to_graph(dataset_name='bitcoin_otc')
             bitcoin_alpha=DataUtils.load_SNAP_to_graph(dataset_name='bitcoin_alpha')
 
-            DataUtils.save_to_pickle(data=CollegeMsg,file_name="CollegeMsg",dir_type="graph")
-            DataUtils.save_to_pickle(data=bitcoin_otc,file_name="bitcoin_otc",dir_type="graph")
-            DataUtils.save_to_pickle(data=bitcoin_alpha,file_name="bitcoin_alpha",dir_type="graph")
+            DataUtils.save_to_pickle(data=CollegeMsg,file_name="CollegeMsg",dir_type="graph",dataset_name="CollegeMsg")
+            DataUtils.save_to_pickle(data=bitcoin_otc,file_name="bitcoin_otc",dir_type="graph",dataset_name="bitcoin_otc")
+            DataUtils.save_to_pickle(data=bitcoin_alpha,file_name="bitcoin_alpha",dir_type="graph",dataset_name="bitcoin_alpha")
 
         case 2:
             """
