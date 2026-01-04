@@ -143,7 +143,7 @@ class GraphUtils:
         datastream=GraphUtils.compute_datastream_from_eventstream(eventstream=eventstream,num_nodes=num_nodes) # dict
         
         traj_list=[]
-        for source_id in src_list:
+        for source_id in tqdm(src_list,desc=f"Converting graph to dataset..."):
             traj=GraphUtils.compute_TR_trajectory_from_eventstream(eventstream=eventstream,num_nodes=num_nodes,source_id=source_id) # [E,N,1]
             traj_list.append(traj)
         
