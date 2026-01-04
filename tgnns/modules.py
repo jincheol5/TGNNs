@@ -237,3 +237,4 @@ class GraphAttention(nn.Module):
 
         z=torch.cat([neighbor_weight_sum,q_input],dim=-1) 
         z=self.ffn(z) # [B,latent_dim]
+        return z
