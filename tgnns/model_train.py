@@ -32,6 +32,8 @@ class ModelTrainer:
             loss_list=[]
             memory=None
             for batch in tqdm(train_data_loader,desc=f"Epoch {epoch+1}..."):
+                # move batch tensors to device so model and loss use same device
+                batch={k:v.to(device) for k,v in batch.items()}
                 if is_memory:
                     logit,memory=model(batch=batch,memory=memory,device=device)
                 else:
@@ -88,6 +90,8 @@ class ModelTrainer:
         label_list=[]
         with torch.no_grad():
             for batch in tqdm(data_loader,desc=f"Evaluating..."):
+                # move batch tensors to device so model and metrics use same device
+                batch={k:v.to(device) for k,v in batch.items()}
                 if is_memory:
                     logit,memory=model(batch=batch,memory=memory,device=device)
                 else:

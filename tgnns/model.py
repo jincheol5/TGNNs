@@ -29,7 +29,6 @@ class TGAT(nn.Module):
         Output:
             logit_list: List of [B,1], B는 seq 마다 크기 다를 수 있음
         """
-        batch={k:v.to(device) for k,v in batch.items()}
         batch_size,num_nodes,_=batch['traj'].size()
         raw=torch.zeros((batch_size,num_nodes,self.latent_dim),device=device) # [B,N,latent_dim], node raw feature
         init_traj=batch['init_traj'] # [N,1]
@@ -79,7 +78,6 @@ class TGN(nn.Module):
         Output:
             logit: [B,1], B는 seq 마다 크기 다를 수 있음
         """
-        batch={k:v.to(device) for k,v in batch.items()}
         batch_size,num_nodes,_=batch['traj'].size()
         raw=torch.zeros((batch_size,num_nodes,self.latent_dim),device=device) # [B,N,latent_dim], node raw feature
         init_traj=batch['init_traj'] # [N,1]
