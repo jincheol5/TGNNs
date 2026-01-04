@@ -63,7 +63,7 @@ class ModelTrainer:
             """
             if validate:
                 perform,memory=ModelTrainer.test(model=model,is_memory=is_memory,memory=memory,data_loader=val_data_loader)
-                print(f"{epoch+1} epoch tR validation Acc: {perform['acc']} macro-f1: {perform['macrof1']} PR-AUC: {perform['prauc']} MCC: {perform['mcc']}")
+                print(f"{epoch+1} epoch TR validation Acc: {perform['acc']} macro-f1: {perform['macrof1']} PR-AUC: {perform['prauc']} MCC: {perform['mcc']}")
             
             """
             Early stopping

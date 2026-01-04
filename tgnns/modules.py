@@ -26,11 +26,11 @@ class TimeEncoder(nn.Module):
         """
         compute time encodings of time in timestamps
         Input:
-            timestamps: [batch_size,N,1]
+            timestamps: [B,N,1]
         Output:
-            updated_timestamps: [batch_size,N,time_dim]
+            updated_timestamps: [B,N,time_dim]
         """
-        output=torch.cos(self.w(timestamps)) # [batch_size,N,time_dim]
+        output=torch.cos(self.w(timestamps)) # [B,N,time_dim]
         return output
 
 class MemoryUpdater(nn.Module):
@@ -140,30 +140,38 @@ class GraphSum(nn.Module):
     def forward(self,x,memory,delta_t_vec,neighbor_mask,tar_idx):
         """
         Input:
-            x: [N,node_dim], src_info||raw_feature of node 
-            memory: [N,latent_dim]
-            delta_t_vec: [N,latent_dim]
-            neighbor_mask: [B,N,], neighbor node mask
+            x: [B,N,node_dim]
+            memory: [B,N,latent_dim]
+            delta_t_vec: [B,N,latent_dim]
+            neighbor_mask: [B,N]
             tar_idx: [B,1]
         Output:
             z: [B,latent_dim]
         """
-        # 이웃 노드 하나도 없는 경우 확인->없을 경우 자기 자신만 true가 되도록 mask 수정
-        no_neighbor=~neighbor_mask.any(dim=1) # [B,] bool vec, 이웃 없는 행은 true로
-        if no_neighbor.any():
-            neighbor_mask[no_neighbor,tar_idx[no_neighbor,0]]=True
+        batch_size=x.size(0)
+        batch_idx=torch.arange(batch_size,device=x.device)
+        tar_idx=tar_idx.squeeze(-1)  # [B,]
 
-        w_1_input=torch.cat([x,memory,delta_t_vec],dim=-1) # [N,node_dim+latent_dim+latent_dim] 
-        w_1_output=self.w_1(w_1_input) # [N,latent_dim]
-        neighbor_mask=neighbor_mask.float() # [B,N,]
-        w_1_output_sum=neighbor_mask @ w_1_output # [B,N] x [N,latent_dim] = [B,latent_dim] 
-        h_hat=self.relu(w_1_output_sum) # [B,latent_dim] 
-        
-        tar_x=x[tar_idx.squeeze(-1)]
-        tar_memory=memory[tar_idx.squeeze(-1)]
-        w_2_input=torch.cat([tar_x,tar_memory,h_hat],dim=-1) # [B,node_dim+latent_dim+latent_dim] 
-        z=self.w_2(w_2_input) # [B,latent_dim]
-        return z 
+        # 이웃 노드 하나도 없는 경우 확인->없을 경우 자기 자신만 true가 되도록 mask 수정
+        no_neighbor=~neighbor_mask.any(dim=1)  # [B,] bool vec, 이웃 없는 행은 true로
+        if no_neighbor.any():
+            neighbor_mask[no_neighbor,tar_idx[no_neighbor]] = True
+
+        # compute node-wise projection: [B,N,latent_dim]
+        w_1_input=torch.cat([x,memory,delta_t_vec], dim=-1)  # [B,N,node_dim+latent_dim+latent_dim]
+        w_1_output=self.w_1(w_1_input)  # [B,N,latent_dim]
+
+        # aggregate neighbor messages per batch: [B,latent_dim]
+        neighbor_mask_f=neighbor_mask.float().unsqueeze(-1)  # [B,N,1]
+        w_1_output_sum=(neighbor_mask_f*w_1_output).sum(dim=1)  # [B,latent_dim]
+        h_hat=self.relu(w_1_output_sum)  # [B,latent_dim]
+
+        # target node features per batch
+        tar_x=x[batch_idx,tar_idx]  # [B,node_dim]
+        tar_memory=memory[batch_idx,tar_idx]  # [B,latent_dim]
+        w_2_input=torch.cat([tar_x,tar_memory,h_hat], dim=-1)  # [B,node_dim+latent_dim+latent_dim]
+        z = self.w_2(w_2_input)  # [B,latent_dim]
+        return z
 
 class GraphAttention(nn.Module):
     def __init__(self,node_dim,latent_dim,is_memory:bool=True):
