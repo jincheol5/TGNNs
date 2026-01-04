@@ -35,7 +35,7 @@ class ModelTrainer:
                 # move batch tensors to device so model and loss use same device
                 batch={k:v.to(device) for k,v in batch.items()}
                 if is_memory:
-                    logit,memory=model(batch=batch,memory=memory,device=device)
+                    logit,memory=model(batch=batch,pre_memory=memory,device=device)
                 else:
                     logit=model(batch=batch,device=device)
                 loss=Metrics.compute_TR_loss(logit=logit,label=batch['label'])
@@ -93,7 +93,7 @@ class ModelTrainer:
                 # move batch tensors to device so model and metrics use same device
                 batch={k:v.to(device) for k,v in batch.items()}
                 if is_memory:
-                    logit,memory=model(batch=batch,memory=memory,device=device)
+                    logit,memory=model(batch=batch,pre_memory=memory,device=device)
                 else:
                     logit=model(batch=batch,device=device)
                 logit_list.append(logit)
