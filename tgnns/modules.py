@@ -137,14 +137,14 @@ class GraphSum(nn.Module):
         self.w_2=nn.Linear(in_features=node_dim+latent_dim+latent_dim,out_features=latent_dim)
         self.relu=nn.ReLU()
 
-    def forward(self,x,memory,delta_t_vec,neighbor_mask,tar_idx):
+    def forward(self,x,delta_t_vec,neighbor_mask,tar_idx,memory):
         """
         Input:
             x: [B,N,node_dim]
-            memory: [B,N,latent_dim]
             delta_t_vec: [B,N,latent_dim]
             neighbor_mask: [B,N]
             tar_idx: [B,1]
+            memory: [B,N,latent_dim]
         Output:
             z: [B,latent_dim]
         """

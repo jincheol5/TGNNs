@@ -102,7 +102,13 @@ class TGN(nn.Module):
         2. embedding
         """
         delta_emb_t_vec=self.time_encoder(emb_t) # [B,N,latent_dim]
-        z=self.embedding(x=x,delta_t_vec=delta_emb_t_vec,neighbor_mask=n_mask,tar_idx=tar,memory=updated_memory) # [B,latent_dim]
+        match self.emb:
+            case 'time':
+                z=self.embedding(memory=updated_memory,delta_t=emb_t,tar_idx=tar) # [B,latent_dim]
+            case 'sum':
+                z=self.embedding(x=x,delta_t_vec=delta_emb_t_vec,neighbor_mask=n_mask,tar_idx=tar,memory=updated_memory) # [B,latent_dim]
+            case 'attn':
+                z=self.embedding(x=x,delta_t_vec=delta_emb_t_vec,neighbor_mask=n_mask,tar_idx=tar,memory=updated_memory) # [B,latent_dim]
         logit=self.linear(z) # [B,1]
         updated_memory=updated_memory[0] # [N,latent_dim]
         return logit,updated_memory # [B,1], B는 seq 마다 크기 다를 수 있음
