@@ -214,12 +214,10 @@ class GraphAttention(nn.Module):
             kv_input=torch.cat([x,delta_t_vec],dim=-1) # [B,N,node_dim+latent_dim]
 
         q=self.query_linear(q_input) # [B,latent_dim]
-        k=self.key_linear(kv_input) # [N,latent_dim]
-        v=self.value_linear(kv_input) # [N,latent_dim]
+        k=self.key_linear(kv_input) # [B,N,latent_dim]
+        v=self.value_linear(kv_input) # [B,N,latent_dim]
 
         q=q.unsqueeze(1) # [B,1,latent_dim]
-        k=k.unsqueeze(0) # [1,N,latent_dim]
-        v=v.unsqueeze(0) # [1,N,latent_dim]
 
         feature_dim=q.size(-1)
         attention_scores=torch.matmul(q,k.transpose(1,2))/(feature_dim**0.5) # [B,1,N]
