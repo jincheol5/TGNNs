@@ -104,7 +104,12 @@ class TGN(nn.Module):
         delta_emb_t_vec=self.time_encoder(emb_t) # [B,N,latent_dim]
         match self.emb:
             case 'time':
-                z=self.embedding(memory=updated_memory,delta_t=emb_t,tar_idx=tar) # [B,latent_dim]
+                # TimeProjection expects memory: [N,latent_dim], delta_t: [B,1], tar_idx: [B,1]
+                # updated_memory is [B,N,latent_dim] (expanded) -> use the unbatched memory (first element)
+                batch_idx=torch.arange(batch_size,device=device)
+                tar_idx_s=tar.squeeze(-1) # [B,]
+                delta_t_target=emb_t[batch_idx,tar_idx_s] # [B,1]
+                z=self.embedding(memory=updated_memory[0],delta_t=delta_t_target,tar_idx=tar) # [B,latent_dim]
             case 'sum':
                 z=self.embedding(x=x,delta_t_vec=delta_emb_t_vec,neighbor_mask=n_mask,tar_idx=tar,memory=updated_memory) # [B,latent_dim]
             case 'attn':
