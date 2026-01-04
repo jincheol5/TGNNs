@@ -30,7 +30,7 @@ def app_data(config: dict):
                 datastream
                 traj of each src 
             """
-            graph=DataUtils.load_from_pickle(file_name=f"{config['dataset_name']}",dir_type="graph")
+            graph=DataUtils.load_from_pickle(file_name=f"{config['dataset_name']}",dir_type="graph",dataset_name=f"{config['dataset_name']}")
             node_list=list(graph.nodes())
             selected_node_list=random.sample(node_list,10) # 랜덤하게 10개의 source node 선택
             dataset=GraphUtils.convert_graph_to_dataset(graph=graph,src_list=selected_node_list)
