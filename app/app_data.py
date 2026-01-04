@@ -28,7 +28,6 @@ def app_data(config: dict):
             Convert graph to dataset and save using pickle
                 src_list
                 datastream
-                traj_list
                 traj of each src 
             """
             graph=DataUtils.load_from_pickle(file_name=f"{config['dataset_name']}",dir_type="graph")

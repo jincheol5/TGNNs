@@ -63,7 +63,7 @@ class TGN(nn.Module):
         self.latent_dim=latent_dim
         self.emb=emb
 
-    def forward(self,batch,pre_memory,device):
+    def forward(self,batch,pre_memory=None,device=None):
         """
         Input:
             batch: dict
@@ -75,7 +75,7 @@ class TGN(nn.Module):
                 tar: [B,1]
                 n_mask: [B,N]
                 label: [B,1]
-            memory: [N,1]
+            pre_memory: [N,1]
         Output:
             logit: [B,1], B는 seq 마다 크기 다를 수 있음
         """
@@ -94,6 +94,8 @@ class TGN(nn.Module):
         """
         1. memory update using previous raw messages
         """
+        if pre_memory==None:
+            pre_memory=torch.zeros((num_nodes,self.latent_dim),device=device) # [N,latent_dim]
         delta_mem_t_vec=self.time_encoder(mem_t) # [B,N,latent_dim]
         updated_memory=self.memory_updater(memory=pre_memory,source=src,target=tar,delta_t_vec=delta_mem_t_vec) # [N,latent_dim]
         updated_memory=updated_memory.unsqueeze(0).expand(batch_size,-1,-1) # [B,N,latent_dim]

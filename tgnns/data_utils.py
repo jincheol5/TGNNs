@@ -33,6 +33,39 @@ class DataUtils:
         return data
 
     @staticmethod
+    def save_model_parameter(model,model_name:str):
+        file_name=model_name+".pt"
+        file_path=os.path.join(DataUtils.dataset_path,"inference","model",file_name)
+        torch.save(model.state_dict(),file_path)
+        print(f"Save {model_name} model parameter")
+
+    @staticmethod
+    def load_model_parameter(model,model_name:str):
+        file_name=model_name+".pt"
+        file_path=os.path.join(DataUtils.dataset_path,"inference","model",file_name)
+        model.load_state_dict(torch.load(file_path))
+        return model
+
+    @staticmethod
+    def save_memory(memory,model_name:str):
+        file_name=f"{model_name}_memory.pkl"
+        file_name=file_name+".pkl"
+        file_path=os.path.join(DataUtils.dataset_path,"inference","memory",file_name)
+        with open(file_path,'wb') as f:
+            pickle.dump(memory,f)
+        print(f"Save {file_name}")
+
+    @staticmethod
+    def load_memory(memory,model_name:str):
+        file_name=f"{model_name}_memory.pkl"
+        file_name=file_name+".pkl"
+        file_path=os.path.join(DataUtils.dataset_path,"inference","memory",file_name)
+        with open(file_path,'rb') as f:
+            pickle.load(f)
+        print(f"Load {file_name}")
+        return memory
+
+    @staticmethod
     def load_SNAP_to_graph(dataset_name:Literal['CollegeMsg','bitcoin_otc','bitcoin_alpha']='CollegeMsg',return_mapping:bool=False):
         """
         Input:
@@ -113,4 +146,3 @@ class DataUtils:
         if return_mapping:
             return graph,mapping
         return graph
-
