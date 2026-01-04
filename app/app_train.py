@@ -21,6 +21,14 @@ def app_train(config: dict):
     torch.backends.cudnn.benchmark=False
 
     match config['app_num']:
+        case 0:
+            """
+            App 0.
+            check source list of dataset
+            """
+            src_list=DataUtils.load_from_pickle(file_name=f"src_list",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
+            print(f"{config['dataset_name']} source list: {src_list}")
+
         case 1:
             """
             App 1.
