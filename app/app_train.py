@@ -80,14 +80,7 @@ def app_train(config: dict):
             """
             train model for all source list
             """
-            ### wandb
-            if config['wandb']:
-                if config['model']=='tgn':
-                    wandb.init(project="TGNNs",name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
-                else: # tgat
-                    wandb.init(project="TGNNs",name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
-                wandb.config.update(config)
-
+            
             ### data load
             src_list=DataUtils.load_from_pickle(file_name=f"src_list",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
             train_datastream=DataUtils.load_from_pickle(file_name=f"datastream",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
@@ -95,6 +88,14 @@ def app_train(config: dict):
 
             ### model train for all source list
             for source_id in tqdm(src_list,desc=f"training {config['dataset_name']}..."):
+                ### wandb
+                if config['wandb']:
+                    if config['model']=='tgn':
+                        wandb.init(project="TGNNs",name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
+                    else: # tgat
+                        wandb.init(project="TGNNs",name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
+                    wandb.config.update(config)
+
                 train_traj=DataUtils.load_from_pickle(file_name=f"traj_{source_id}",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
                 train_data_loader=ModelTrainUtils.get_data_loader(datastream=train_datastream,traj=train_traj,source_id=source_id,batch_size=config['batch_size'])
 

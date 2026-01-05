@@ -1,0 +1,213 @@
+{
+    "os": "Linux-6.8.0-86-generic-x86_64-with-glibc2.39",
+    "python": "CPython 3.10.15",
+    "heartbeatAt": "2026-01-05T11:37:39.422017",
+    "startedAt": "2026-01-05T11:37:38.903435",
+    "docker": null,
+    "args": [
+        "service",
+        "--debug",
+        "--port-filename",
+        "/tmp/tmpor2r68yq/port-283026.txt",
+        "--pid",
+        "283026"
+    ],
+    "state": "running",
+    "program": "-m app.app_train",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/jincheol5/TGNNs.git",
+        "commit": "19c96f2242e2ab7fef7f51b220448d7bbe253f5e"
+    },
+    "email": "oscar4293@gmail.com",
+    "root": "/home/jincheol/github_repo/TGNNs",
+    "host": "dfpl",
+    "username": null,
+    "executable": "/home/jincheol/anaconda3/envs/gnn_basic/bin/python",
+    "cpu_count": 16,
+    "cpu_count_logical": 32,
+    "cpu_freq": {
+        "current": 2489.80153125,
+        "min": 2200.0,
+        "max": 3400.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2873.657,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 3594.072,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2869.707,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2875.264,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2871.181,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2870.811,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 3400.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2200.0,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2874.482,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2869.09,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2874.636,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2873.896,
+            "min": 2200.0,
+            "max": 3400.0
+        },
+        {
+            "current": 2869.528,
+            "min": 2200.0,
+            "max": 3400.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 3663.9825286865234,
+            "used": 425.5943069458008
+        }
+    },
+    "gpu": "NVIDIA GeForce RTX 3080 Ti",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3080 Ti",
+            "memory_total": 12884901888
+        }
+    ],
+    "memory": {
+        "total": 125.7000846862793
+    }
+}
