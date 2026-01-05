@@ -69,12 +69,59 @@ def app_train(config: dict):
             if config['save_model']:
                 match config['model']:
                     case 'tgat':
-                        model_name=f"tgat_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}"
+                        model_name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}"
                         DataUtils.save_model_parameter(model=model,model_name=model_name)
                     case 'tgn':
-                        model_name=f"tgn_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}"
+                        model_name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}"
                         DataUtils.save_model_parameter(model=model,model_name=model_name)
                         DataUtils.save_memory(memory=memory,model_name=model_name)
+        
+        case 2:
+            """
+            train model for all source list
+            """
+            ### wandb
+            if config['wandb']:
+                if config['model']=='tgn':
+                    wandb.init(project="TGNNs",name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
+                else: # tgat
+                    wandb.init(project="TGNNs",name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
+                wandb.config.update(config)
+
+            ### data load
+            src_list=DataUtils.load_from_pickle(file_name=f"src_list",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
+            train_datastream=DataUtils.load_from_pickle(file_name=f"datastream",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
+            val_datastream=DataUtils.load_from_pickle(file_name=f"datastream",dir_type='dataset',dataset_name=config['dataset_name'],mode='val')
+
+            ### model train for all source list
+            for source_id in tqdm(src_list,desc=f"training {config['dataset_name']}..."):
+                train_traj=DataUtils.load_from_pickle(file_name=f"traj_{source_id}",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
+                train_data_loader=ModelTrainUtils.get_data_loader(datastream=train_datastream,traj=train_traj,source_id=source_id,batch_size=config['batch_size'])
+
+                val_traj=DataUtils.load_from_pickle(file_name=f"traj_{source_id}",dir_type='dataset',dataset_name=config['dataset_name'],mode='val')
+                val_data_loader=ModelTrainUtils.get_data_loader(datastream=val_datastream,traj=val_traj,source_id=source_id,batch_size=config['batch_size'])
+
+                ### model train
+                memory=None
+                match config['model']:
+                    case 'tgat':
+                        model=TGAT(traj_dim=1,latent_dim=config['latent_dim'])
+                        memory=ModelTrainer.train(model=model,is_memory=False,train_data_loader=train_data_loader,val_data_loader=val_data_loader,validate=True,config=config)
+                    case 'tgn':
+                        model=TGN(traj_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
+                        memory=ModelTrainer.train(model=model,is_memory=True,train_data_loader=train_data_loader,val_data_loader=val_data_loader,validate=True,config=config)
+
+                ### save model
+                if config['save_model']:
+                    match config['model']:
+                        case 'tgat':
+                            model_name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{source_id}"
+                            DataUtils.save_model_parameter(model=model,model_name=model_name)
+                        case 'tgn':
+                            model_name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{source_id}"
+                            DataUtils.save_model_parameter(model=model,model_name=model_name)
+                            DataUtils.save_memory(memory=memory,model_name=model_name)
+
 
 if __name__=="__main__":
     """
