@@ -203,3 +203,21 @@ class GraphUtils:
             'test': (src_list,test_ds,test_traj_list),
             'sizes': {'train':train_size,'val':val_size,'test':test_size}
         }
+
+class GraphAnalysis:
+    def check_elements(graph:nx.DiGraph):
+        num_nodes=graph.number_of_nodes()
+        num_static_edges=graph.number_of_edges()
+        num_edge_events=0
+        for src,tar in graph.edges():
+            count=0
+            for time in graph[src][tar]['t']:
+                if time!=0.0:
+                    count+=1
+            num_edge_events+=count
+        return num_nodes,num_static_edges,num_edge_events
+    
+    @staticmethod
+    def check_tR_ratio(r:torch.Tensor): 
+        r_flat=r.view(-1).to(torch.float32) # [N,1] -> [N,] 
+        return r_flat.mean().item()

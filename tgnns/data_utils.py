@@ -49,19 +49,17 @@ class DataUtils:
     @staticmethod
     def save_memory(memory,model_name:str):
         file_name=f"{model_name}_memory.pkl"
-        file_name=file_name+".pkl"
         file_path=os.path.join(DataUtils.dataset_path,"inference","memory",file_name)
         with open(file_path,'wb') as f:
             pickle.dump(memory,f)
         print(f"Save {file_name}")
 
     @staticmethod
-    def load_memory(memory,model_name:str):
+    def load_memory(model_name:str):
         file_name=f"{model_name}_memory.pkl"
-        file_name=file_name+".pkl"
         file_path=os.path.join(DataUtils.dataset_path,"inference","memory",file_name)
         with open(file_path,'rb') as f:
-            pickle.load(f)
+            memory=pickle.load(f)
         print(f"Load {file_name}")
         return memory
 

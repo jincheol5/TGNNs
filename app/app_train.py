@@ -121,7 +121,40 @@ def app_train(config: dict):
                             model_name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{source_id}"
                             DataUtils.save_model_parameter(model=model,model_name=model_name)
                             DataUtils.save_memory(memory=memory,model_name=model_name)
+        
+        case 3:
+            """
+            App 3.
+            test model for one source
+            """
+            ### data load
+            src_list=DataUtils.load_from_pickle(file_name=f"src_list",dir_type='dataset',dataset_name=config['dataset_name'],mode='test')
+            if config['source_id'] not in src_list:
+                print(f"There are no source_id in src_list of {config['dataset_name']}")
+                return
 
+            datastream=DataUtils.load_from_pickle(file_name=f"datastream",dir_type='dataset',dataset_name=config['dataset_name'],mode='test')
+            traj=DataUtils.load_from_pickle(file_name=f"traj_{config['source_id']}",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
+            data_loader=ModelTrainUtils.get_data_loader(datastream=datastream,traj=traj,source_id=config['source_id'],batch_size=config['batch_size'])
+            
+            ### model evaluate
+            memory=None
+            match config['model']:
+                case 'tgat':
+                    model_name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}"
+                    model=TGAT(traj_dim=1,latent_dim=config['latent_dim'])
+                    model=DataUtils.load_model_parameter(model=model,model_name=model_name)
+                    is_memory=False
+                case 'tgn':
+                    model_name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}"
+                    model=TGN(traj_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
+                    model=DataUtils.load_model_parameter(model=model,model_name=model_name)
+                    memory=DataUtils.load_memory(model_name=model_name)
+                    is_memory=True
+
+            perform,_=ModelTrainer.test(model=model,is_memory=is_memory,memory=memory,data_loader=data_loader)
+            print(f"Test {model_name}")
+            print(f"TR ACC: {perform['acc']} Macro-F1:{perform['macrof1']} PR-AUC: {perform['prauc']} MCC: {perform['mcc']}")
 
 if __name__=="__main__":
     """
