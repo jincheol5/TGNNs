@@ -40,7 +40,6 @@ def app_train(config: dict):
                     wandb.init(project="TGNNs",name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
                 else: # tgat
                     wandb.init(project="TGNNs",name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
-                wandb.config.update(config)
 
             ### data load
             src_list=DataUtils.load_from_pickle(file_name=f"src_list",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
@@ -111,6 +110,7 @@ def app_train(config: dict):
                     case 'tgn':
                         model=TGN(traj_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
                         memory=ModelTrainer.train(model=model,is_memory=True,train_data_loader=train_data_loader,val_data_loader=val_data_loader,validate=True,config=config)
+                wandb.finish()
 
                 ### save model
                 if config['save_model']:
