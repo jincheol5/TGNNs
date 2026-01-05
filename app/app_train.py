@@ -63,6 +63,8 @@ def app_train(config: dict):
                 case 'tgn':
                     model=TGN(traj_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
                     memory=ModelTrainer.train(model=model,is_memory=True,train_data_loader=train_data_loader,val_data_loader=val_data_loader,validate=True,config=config)
+            if config['wandb']:
+                wandb.finish()
 
             ### save model
             if config['save_model']:
@@ -93,7 +95,6 @@ def app_train(config: dict):
                         wandb.init(project="TGNNs",name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{source_id}")
                     else: # tgat
                         wandb.init(project="TGNNs",name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{source_id}")
-                    wandb.config.update(config)
 
                 train_traj=DataUtils.load_from_pickle(file_name=f"traj_{source_id}",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
                 train_data_loader=ModelTrainUtils.get_data_loader(datastream=train_datastream,traj=train_traj,source_id=source_id,batch_size=config['batch_size'])
@@ -110,7 +111,8 @@ def app_train(config: dict):
                     case 'tgn':
                         model=TGN(traj_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
                         memory=ModelTrainer.train(model=model,is_memory=True,train_data_loader=train_data_loader,val_data_loader=val_data_loader,validate=True,config=config)
-                wandb.finish()
+                if config['wandb']:
+                    wandb.finish()
 
                 ### save model
                 if config['save_model']:
