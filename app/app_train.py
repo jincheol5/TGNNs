@@ -91,9 +91,9 @@ def app_train(config: dict):
                 ### wandb
                 if config['wandb']:
                     if config['model']=='tgn':
-                        wandb.init(project="TGNNs",name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
+                        wandb.init(project="TGNNs",name=f"{config['model']}_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{source_id}")
                     else: # tgat
-                        wandb.init(project="TGNNs",name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{config['source_id']}")
+                        wandb.init(project="TGNNs",name=f"{config['model']}_{config['seed']}_{config['lr']}_{config['batch_size']}_{config['dataset_name']}_{source_id}")
                     wandb.config.update(config)
 
                 train_traj=DataUtils.load_from_pickle(file_name=f"traj_{source_id}",dir_type='dataset',dataset_name=config['dataset_name'],mode='train')
